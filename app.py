@@ -80,12 +80,22 @@ def education_at_id(education_id=None):
             end_date = updated_data.get('end_date')
             grade = updated_data.get('grade')
             logo = updated_data.get('logo')
+    
+            if (
+                not course 
+                or not school 
+                or not start_date 
+                or not end_date 
+                or not grade 
+                or not logo
+            ):
+                return jsonify({'error': 'Invalid input, all fields (course, school, start_date, end_date, grade, logo) are required'}), 400
             
             data['education'][education_id] = Education(course, school, start_date, end_date, grade, logo)
 
-            return jsonify({"message": "Education updated", "updated_skill": data['education'][education_id]}), 200
+            return jsonify({'message': 'Education updated', 'updated_education': data['education'][education_id]}), 200
         else:
-            return jsonify({"error": "Education not found"}), 404
+            return jsonify({'error': 'Education not found'}), 404
 
 @app.route('/resume/skill', methods=['GET', 'POST'])
 def skill():
