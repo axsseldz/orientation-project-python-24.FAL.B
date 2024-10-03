@@ -65,6 +65,27 @@ def education():
 
     return jsonify({})
 
+@app.route('/resume/education/<int:education_id>', methods=['PUT'])
+def education_at_id(education_id=None):
+    '''
+    Handles Education requests at a specific ID
+    '''
+    if request.method == 'PUT':
+        if 0 <= education_id < len(data['education']):
+            updated_data = request.get_json()
+
+            course = updated_data.get('course')
+            school = updated_data.get('school')
+            start_date = updated_data.get('start_date')
+            end_date = updated_data.get('end_date')
+            grade = updated_data.get('grade')
+            logo = updated_data.get('logo')
+            
+            data['education'][education_id] = Education(course, school, start_date, end_date, grade, logo)
+
+            return jsonify({"message": "Education updated", "updated_skill": data['education'][education_id]}), 200
+        else:
+            return jsonify({"error": "Education not found"}), 404
 
 @app.route('/resume/skill', methods=['GET', 'POST'])
 def skill():
