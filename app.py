@@ -93,10 +93,10 @@ def skill_at_id(skill_id=None):
             logo = updated_data.get('logo')
 
             if not name or not experience or not logo:
-                return jsonify({"error": "Invalid input, all fields (name, experience, logo) are required"}), 400
+                return jsonify({'error': 'Invalid input, all fields (name, experience, logo) are required'}), 400
             
             data['skill'][skill_id] = Skill(name, experience, logo)
 
-            return jsonify({"message": "Skill updated", "updated_skill": data['skill'][skill_id]}), 200
+            return jsonify({'message': 'Skill updated', 'updated_skill': data['skill'][skill_id]}), 200
         else:
-            return jsonify({"error": "Skill not found"}), 404
+            return jsonify({'error': 'Skill not found'}), 404
