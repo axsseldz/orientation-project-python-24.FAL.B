@@ -78,3 +78,15 @@ def skill():
         return jsonify({})
 
     return jsonify({})
+
+@app.route('/resume/skill/<int:skill_id>', methods=['DELETE'])
+def skill_id(skill_id=None):
+    '''
+    Handles Skill requests at a specific ID
+    '''
+    if request.method == 'DELETE':
+        if 0 <= skill_id < len(data['skill']):
+            deleted_skill = data['skill'].pop(skill_id)
+            return jsonify({"message": "Skill deleted", "deleted_skill": deleted_skill}), 200
+        else:
+            return jsonify({"error": "Skill not found"}), 404
