@@ -80,7 +80,7 @@ def skill():
     return jsonify({})
 
 @app.route('/resume/skill/<int:skill_id>', methods=['DELETE'])
-def skill_id(skill_id=None):
+def skill_at_id(skill_id=None):
     '''
     Handles Skill requests at a specific ID
     '''
