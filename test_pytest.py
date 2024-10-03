@@ -72,3 +72,36 @@ def test_skill():
 
     response = app.test_client().get('/resume/skill')
     assert response.json[item_id] == example_skill
+
+
+def test_delete_education():
+    '''
+    Adds a new education, then deletes it, and checks that it's no longer in the list
+    '''
+    example_education = {
+        "course": "Engineering",
+        "school": "NYU",
+        "start_date": "October 2022",
+        "end_date": "August 2024",
+        "grade": "86%",
+        "logo": "example-logo.png"
+    }
+
+    post_response = app.test_client().post('/resume/education', json=example_education)
+    assert post_response.status_code == 200
+
+    get_response = app.test_client().get('/resume/education')
+    assert get_response.status_code == 200
+    original_length = len(get_response.json)
+    
+    item_id = len(get_response.json) - 1
+
+    print("Current education entries:", get_response.json)
+
+    delete_response = app.test_client().delete(f'/resume/education/{item_id}')
+    print(item_id)
+    print("Delete response:", delete_response.status_code, delete_response.json)  
+
+    get_response_after_delete = app.test_client().get('/resume/education')
+    assert get_response_after_delete.status_code == 200
+    assert len(get_response_after_delete.json) == original_length - 1  
