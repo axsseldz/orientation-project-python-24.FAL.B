@@ -1,6 +1,3 @@
-'''
-Flask Application
-'''
 from flask import Flask, jsonify, request
 from models import Experience, Education, Skill
 
@@ -30,7 +27,6 @@ data = {
     ]
 }
 
-
 @app.route('/test')
 def hello_world():
     '''
@@ -42,39 +38,71 @@ def hello_world():
 @app.route('/resume/experience', methods=['GET', 'POST'])
 def experience():
     '''
-    Handle experience requests
+    Handles GET and POST requests for experience data
+
+    GET:
+        Returns:
+            a JSON object: the current list of experience data
+
+    POST:
+        Expects a dictionary containing the experience details to be added 
+        
+        Returns:
+            JSON: The updated experience list after adding the new entry
     '''
     if request.method == 'GET':
-        return jsonify()
+        return jsonify(data['experience'])
 
     if request.method == 'POST':
-        return jsonify({})
+        new_experience = request.json
+        data['experience'].append(new_experience)
+        return jsonify(data['experience'])
 
-    return jsonify({})
 
 @app.route('/resume/education', methods=['GET', 'POST'])
 def education():
     '''
-    Handles education requests
+    Handles GET and POST requests for education data
+
+    GET:
+        Returns:
+            JSON: The current list of education data
+
+    POST:
+        Expects request.json: A dictionary containing the education details 
+            to be added
+        
+        Returns:
+            JSON: The updated education list after adding the new entry
     '''
     if request.method == 'GET':
-        return jsonify({})
+        return jsonify(data['education'])
 
     if request.method == 'POST':
-        return jsonify({})
-
-    return jsonify({})
+        new_education = request.json
+        data['education'].append(new_education)
+        return jsonify(data['education'])
 
 
 @app.route('/resume/skill', methods=['GET', 'POST'])
 def skill():
     '''
-    Handles Skill requests
+    Handles GET and POST requests for skill data
+
+    GET:
+        Returns:
+            JSON: The current list of skill data
+
+    POST:
+        Expects request.json: a dictionary containing the skill details to be added
+        
+        Returns:
+            JSON: The updated skill list after adding the new entry
     '''
     if request.method == 'GET':
-        return jsonify({})
+        return jsonify(data['skill'])
 
     if request.method == 'POST':
-        return jsonify({})
-
-    return jsonify({})
+        new_skill = request.json
+        data['skill'].append(new_skill)
+        return jsonify(data['skill'])
