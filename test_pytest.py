@@ -72,3 +72,23 @@ def test_skill():
 
     response = app.test_client().get('/resume/skill')
     assert response.json[item_id] == example_skill
+
+
+def delete_skill():
+    '''
+    Add a new skill and then delete it.
+    
+    Check that the skill is no longer in the list.
+    '''
+    example_skill = {
+        "name": "JavaScript",
+        "proficiency": "2-4 years",
+        "logo": "example-logo.png"
+    }
+    
+    added_item_id = app.test_client().post('/resume/skill', json=example_skill).json['id']
+    
+    app.test_client().delete(f'/resume/skill/{added_item_id}')
+    
+    response = app.test_client().get(f'/resume/skill/{added_item_id}')
+    assert response.json['message'] == "Skill not found"
