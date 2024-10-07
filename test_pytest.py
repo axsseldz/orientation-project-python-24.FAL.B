@@ -125,4 +125,4 @@ def edit_education():
     app.test_client().put(f'/resume/education/{index}', json=edited_education)
     response = app.test_client().get(f'/resume/education/{index}')
 
-    assert response["name"] == edited_education["name"]
+    assert response["course"] == edited_education["course"]
