@@ -64,12 +64,66 @@ def education():
     Handles education requests
     '''
     if request.method == 'GET':
-        return jsonify({})
+        return jsonify(data['education']), 200
 
     if request.method == 'POST':
-        return jsonify({})
+        new_education = request.json
+
+        if (
+            'course' not in new_education
+            or 'school' not in new_education
+            or 'start_date' not in new_education
+            or 'end_date' not in new_education
+            or 'grade' not in new_education
+            or 'logo' not in new_education
+        ):
+            return jsonify({'error': 'Invalid input, all fields (course, school, start_date, end_date, grade, logo) are required'}), 400
+
+        data['education'].append(new_education)
+
+        return jsonify({'message': 'Education added', 'data': new_education, 'index': len(data['education']) - 1}), 201
 
     return jsonify({})
+
+
+@app.route('/resume/education/<int:education_id>', methods=['GET', 'PUT', 'DELETE'])
+def education_at_id(education_id=None):
+    '''
+    Handles education requests at a specific ID
+    '''
+    if request.method == 'GET':
+        if 0 <= education_id < len(data['education']):
+            return jsonify(data['education'][education_id]), 200
+        else:
+            return jsonify({'error': 'Education not found'}), 404
+
+    if request.method == 'PUT':
+        if 0 <= education_id < len(data['education']):
+            updated_data = request.get_json()
+
+            course = updated_data.get('course')
+            school = updated_data.get('school')
+            start_date = updated_data.get('start_date')
+            end_date = updated_data.get('end_date')
+            grade = updated_data.get('grade')
+            logo = updated_data.get('logo')
+
+            if not (course and school and start_date and end_date and grade and logo):
+                return jsonify({'error': 'Invalid input, all fields (course, school, start_date, end_date, grade, logo) are required'}), 400
+
+            data['education'][education_id] = Education(course, school, start_date, end_date, grade, logo)
+
+            return jsonify({'message': 'Education updated', 'data': data['education'][education_id]}), 200
+        else:
+            return jsonify({'error': 'Education not found'}), 404    
+
+    if request.method == 'DELETE':
+        if 0 <= education_id < len(data['education']):
+            deleted_education = data['education'].pop(education_id)
+
+            return jsonify({"message": "Education deleted", "data": deleted_education}), 200
+        else:
+            return jsonify({"error": "Education not found"}), 404
 
 
 @app.route('/resume/skill', methods=['GET', 'POST'])
