@@ -92,6 +92,15 @@ def delete_education(index):
         return jsonify({"error": "Education not found."}), 404
 
 
+@app.route('/resume/experience/<int:index>', methods=['DELETE'])
+def delete_experience(index):
+    try:
+        del data['experience'][index]
+        return jsonify({"message": "Experience deleted successfully."}), 200
+    except IndexError:
+        return jsonify({"error": "Experience not found."}), 404
+
+
 @app.route('/resume/skill', methods=['GET', 'POST'])
 def skill():
     '''

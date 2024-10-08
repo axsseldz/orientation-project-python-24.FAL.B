@@ -76,7 +76,7 @@ def test_skill():
 
 def test_delete_education():
     '''
-    Adds a new education, then deletes it, and checks that it's no longer in the list
+    adds a new education and then deletes it, and checks if it's no longer in the list
     '''
     example_education = {
         "course": "Engineering",
@@ -105,3 +105,38 @@ def test_delete_education():
     get_response_after_delete = app.test_client().get('/resume/education')
     assert get_response_after_delete.status_code == 200
     assert len(get_response_after_delete.json) == original_length - 1  
+
+def test_delete_experience():
+    '''
+    adds a new experience, deletes it, and checks that it's no longer in the list
+    '''
+    example_experience = {
+        "title": "Backend Developer",
+        "company": "Another Cool Company",
+        "start_date": "January 2023",
+        "end_date": "Present",
+        "description": "Working on APIs",
+        "logo": "example-logo.png"
+    }
+
+    post_response = app.test_client().post('/resume/experience', json=example_experience)
+    assert post_response.status_code == 200
+
+    get_response = app.test_client().get('/resume/experience')
+    assert get_response.status_code == 200
+    original_length = len(get_response.json)
+
+    item_id = len(get_response.json) - 1
+
+    print("Current experience entries:", get_response.json)
+
+    delete_response = app.test_client().delete(f'/resume/experience/{item_id}')
+    print(item_id)
+    print("Delete response:", delete_response.status_code, delete_response.json)
+
+    assert delete_response.status_code == 200
+    assert delete_response.json == {"message": "Experience deleted successfully."}
+
+    get_response_after_delete = app.test_client().get('/resume/experience')
+    assert get_response_after_delete.status_code == 200
+    assert len(get_response_after_delete.json) == original_length - 1
