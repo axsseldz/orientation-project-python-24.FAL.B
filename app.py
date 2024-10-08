@@ -123,3 +123,10 @@ def skill():
         new_skill = request.json
         data['skill'].append(new_skill)
         return jsonify(data['skill'])
+
+@app.route('/resume/experience/<int:index>', methods=['GET'])
+def get_experience_by_index(index):
+    try:
+        return jsonify(data['experience'][index]), 200
+    except IndexError:
+        return jsonify({"error": "Experience not found."}), 404
