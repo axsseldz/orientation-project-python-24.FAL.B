@@ -72,3 +72,57 @@ def test_skill():
 
     response = app.test_client().get('/resume/skill')
     assert response.json[item_id] == example_skill
+
+
+def delete_education():
+    '''
+    Add a new education and then delete it.
+    
+    Check that the education is no longer in the list.
+    '''
+    example_education = {
+        "course": "Computer Science",
+        "end_date": "July 2022",
+        "grade": "80%",
+        "logo": "updated-logo.png",
+        "school": "University of Tech",
+        "start_date": "September 2019"
+    }
+
+    added_item_id = app.test_client().post('/resume/education', json=example_education).json['id']
+
+    app.test_client().delete(f'/resume/education/{added_item_id}')
+
+    response = app.test_client().get(f'/resume/education/{added_item_id}')
+    assert response.json['message'] == "Education not found"
+
+
+def edit_education():
+    '''
+    Add a new education and then edit it.
+    
+    Check that the education is updated in the list.
+    '''
+    example_education = {
+        "course": "Computer Science",
+        "end_date": "July 2022",
+        "grade": "80%",
+        "logo": "updated-logo.png",
+        "school": "University of Tech",
+        "start_date": "September 2019"
+    }
+
+    edited_education = {
+        "course": "NEW Computer Science",
+        "end_date": "July 2022",
+        "grade": "NEW 80%",
+        "logo": "updated-logo.png",
+        "school": "NEW University of Tech",
+        "start_date": "September 2019"
+    }
+
+    index = app.test_client().post('/resume/education', json=example_education).json['id']
+    app.test_client().put(f'/resume/education/{index}', json=edited_education)
+    response = app.test_client().get(f'/resume/education/{index}')
+
+    assert response["course"] == edited_education["course"]
