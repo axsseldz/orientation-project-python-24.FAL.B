@@ -126,3 +126,47 @@ def edit_education():
     response = app.test_client().get(f'/resume/education/{index}')
 
     assert response["course"] == edited_education["course"]
+
+def delete_skill():
+    '''
+    Add a new skill and then delete it.
+    
+    Check that the skill is no longer in the list.
+    '''
+    example_skill = {
+        "name": "JavaScript",
+        "proficiency": "2-4 years",
+        "logo": "example-logo.png"
+    }
+    
+    added_item_id = app.test_client().post('/resume/skill', json=example_skill).json['id']
+    
+    app.test_client().delete(f'/resume/skill/{added_item_id}')
+    
+    response = app.test_client().get(f'/resume/skill/{added_item_id}')
+    assert response.json['message'] == "Skill not found"
+    
+    
+def edit_skill():
+    '''
+    Add a new skill and then edit it.
+    
+    Check that the skill is updated in the list.
+    '''
+    example_skill = {
+        "name": "JavaScript",
+        "proficiency": "2-4 years",
+        "logo": "example-logo.png"
+    }
+    
+    edited_skill = {
+        "name": "Python",
+        "proficiency": "2-4 years",
+        "logo": "example-logo.png"
+    }
+    
+    index = app.test_client().post('/resume/skill', json=example_skill).json['id']
+    app.test_client().put(f'/resume/skill/{index}', json=edited_skill)
+    response = app.test_client().get(f'/resume/skill/{index}')
+    
+    assert response["name"] == edited_skill["name"]
