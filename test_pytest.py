@@ -1,7 +1,7 @@
 '''
 Tests in Pytest
 '''
-from app import app
+from app import app, data
 
 
 def test_client():
@@ -31,7 +31,32 @@ def test_experience():
     item_id = app.test_client().post('/resume/experience',
                                      json=example_experience).json['id']
     response = app.test_client().get('/resume/experience')
-    assert response.json[item_id] == example_experience
+    assert response.json[int(item_id)] == example_experience
+
+
+def test_edit_experience():
+    '''
+    Update an existing experience and verify the update.
+    '''
+    experience_id = 0  
+
+    updated_experience = {
+        "title": "Senior Backend Developer",
+        "company": "Tech Solutions Inc.",
+        "start_date": "January 2021",
+        "end_date": "Present",
+        "description": "Developing and maintaining APIs",
+        "logo": "tech-solutions-inc.png"
+    }
+
+    put_response = app.test_client().put(f'/resume/experience/{experience_id}', json=updated_experience)
+    
+    assert put_response.status_code == 200, f"Expected status code 200, got {put_response.status_code}"
+
+    response_data = put_response.get_json()
+    assert response_data == updated_experience, "Response data does not match the updated experience"
+
+    assert data['experience'][experience_id].__dict__ == updated_experience, "Data not updated correctly in the application"
 
 
 def test_education():

@@ -53,10 +53,35 @@ def experience():
         new_experience = Experience(**experience_data)
         data['experience'].append(new_experience)
         index = len(data['experience']) - 1
-        
         return jsonify({'id': str(index)}), 201
 
     return jsonify({})
+
+@app.route('/resume/experience/<int:experience_id>', methods=['PUT'])
+def experience_at_id(experience_id):
+    '''
+    Handles PUT requests to update an Experience at a specific ID
+    '''
+    if 0 <= experience_id < len(data['experience']):
+        updated_data = request.get_json()
+
+        # Validate that all required fields are present
+        required_fields = ['title', 'company', 'start_date', 'end_date', 'description', 'logo']
+        if not all(field in updated_data for field in required_fields):
+            return jsonify({'error': f'All fields {required_fields} are required'}), 400
+
+        data['experience'][experience_id] = Experience(
+            title=updated_data['title'],
+            company=updated_data['company'],
+            start_date=updated_data['start_date'],
+            end_date=updated_data['end_date'],
+            description=updated_data['description'],
+            logo=updated_data['logo']
+        )
+
+        return jsonify(data['experience'][experience_id].__dict__), 200
+    else:
+        return jsonify({'error': 'Experience not found'}), 404
 
 @app.route('/resume/education', methods=['GET', 'POST'])
 def education():
@@ -77,7 +102,7 @@ def education():
             or 'grade' not in new_education
             or 'logo' not in new_education
         ):
-            return jsonify({'error': 'Invalid input, all fields (course, school, start_date, end_date, grade, logo) are required'}), 400
+            return jsonify({'error': 'All fields are required'}), 400
 
         data['education'].append(new_education)
 
