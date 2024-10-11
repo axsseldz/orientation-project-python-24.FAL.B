@@ -12,6 +12,14 @@ load_dotenv()
 
 app = Flask(__name__)
 
+DEFAULT_LOGO_URL = "./example-logo.png"
+
+def get_logo(logo):
+    """
+    Returns the logo if it exists, otherwise returns the default logo URL.
+    """
+    return logo if logo else DEFAULT_LOGO_URL
+
 data = {
     "experience": [
         Experience("Software Developer",
@@ -19,7 +27,7 @@ data = {
                    "October 2022",
                    "Present",
                    "Writing Python Code",
-                   "example-logo.png")
+                   get_logo("example-logo.png"))
     ],
     "education": [
         Education("Computer Science",
@@ -27,12 +35,12 @@ data = {
                   "September 2019",
                   "July 2022",
                   "80%",
-                  "example-logo.png")
+                  get_logo("example-logo.png"))
     ],
     "skill": [
         Skill("Python",
               "1-2 Years",
-              "example-logo.png")
+              get_logo("example-logo.png"))
     ]
 }
 
@@ -81,12 +89,26 @@ def experience():
     Handle experience requests
     '''
     if request.method == 'GET':
-        experiences = [exp.__dict__ for exp in data['experience']]
+        experiences = [{
+            'title': exp.title,
+            'company': exp.company,
+            'start_date': exp.start_date,
+            'end_date': exp.end_date,
+            'description': exp.description,
+            'logo': get_logo(exp.logo)  # Use helper to get logo or default
+        } for exp in data['experience']]
         return jsonify(experiences), 200
 
     if request.method == 'POST':
         experience_data = request.json
-        new_experience = Experience(**experience_data)
+        new_experience = Experience(
+            experience_data['title'],
+            experience_data['company'],
+            experience_data['start_date'],
+            experience_data['end_date'],
+            experience_data['description'],
+            get_logo(experience_data.get('logo'))  # Use helper to handle missing logo
+        )
         data['experience'].append(new_experience)
         index = len(data['experience']) - 1
         return jsonify({'id': str(index)}), 201
@@ -113,7 +135,7 @@ def experience_at_id(experience_id):
                 start_date=updated_data['start_date'],
                 end_date=updated_data['end_date'],
                 description=updated_data['description'],
-                logo=updated_data['logo']
+                logo=get_logo(updated_data.get('logo'))  # Use helper here
             )
 
             return jsonify(data['experience'][experience_id].__dict__), 200
@@ -147,7 +169,14 @@ def education():
     Handles education requests
     '''
     if request.method == 'GET':
-        educations = [edu.__dict__ for edu in data['education']]
+        educations = [{
+            'course': edu.course,
+            'school': edu.school,
+            'start_date': edu.start_date,
+            'end_date': edu.end_date,
+            'grade': edu.grade,
+            'logo': get_logo(edu.logo)  # Use helper to get logo or default
+        } for edu in data['education']]
         return jsonify(educations), 200
 
     if request.method == 'POST':
@@ -163,7 +192,14 @@ def education():
         ):
             return jsonify({'error': 'All fields are required'}), 400
 
-        new_edu = Education(**new_education)
+        new_edu = Education(
+            new_education['course'],
+            new_education['school'],
+            new_education['start_date'],
+            new_education['end_date'],
+            new_education['grade'],
+            get_logo(new_education.get('logo'))  # Use helper here
+        )
         data['education'].append(new_edu)
 
         return jsonify({'message': 'Education added', 'data': new_edu.__dict__, 'index': len(data['education']) - 1}), 201
@@ -177,7 +213,15 @@ def education_at_id(education_id=None):
     '''
     if request.method == 'GET':
         if 0 <= education_id < len(data['education']):
-            return jsonify(data['education'][education_id].__dict__), 200
+            edu = data['education'][education_id]
+            return jsonify({
+                'course': edu.course,
+                'school': edu.school,
+                'start_date': edu.start_date,
+                'end_date': edu.end_date,
+                'grade': edu.grade,
+                'logo': get_logo(edu.logo)  # Use helper to get logo or default
+            }), 200
         else:
             return jsonify({'error': 'Education not found'}), 404
 
@@ -190,7 +234,7 @@ def education_at_id(education_id=None):
             start_date = updated_data.get('start_date')
             end_date = updated_data.get('end_date')
             grade = updated_data.get('grade')
-            logo = updated_data.get('logo')
+            logo = get_logo(updated_data.get('logo'))  # Use helper to handle missing logo
 
             if not (course and school and start_date and end_date and grade and logo):
                 return jsonify({'error': 'Invalid input, all fields (course, school, start_date, end_date, grade, logo) are required'}), 400
@@ -214,7 +258,11 @@ def skill():
     Handles Skill requests
     '''
     if request.method == 'GET':
-        skills = [skill.__dict__ for skill in data['skill']]
+        skills = [{
+            'name': skill.name,
+            'proficiency': skill.proficiency,
+            'logo': get_logo(skill.logo)  # Use helper to get logo or default
+        } for skill in data['skill']]
         return jsonify(skills), 200
 
     if request.method == 'POST':
@@ -223,7 +271,11 @@ def skill():
         if "name" not in new_skill or "proficiency" not in new_skill or "logo" not in new_skill:
             return jsonify({"error": "Invalid input, all fields (name, proficiency, logo) are required"}), 400
         
-        new_skill_obj = Skill(**new_skill)
+        new_skill_obj = Skill(
+            new_skill['name'],
+            new_skill['proficiency'],
+            get_logo(new_skill.get('logo'))  # Use helper to handle missing logo
+        )
         data['skill'].append(new_skill_obj)
         
         return jsonify({'message': 'Skill added', 'data': new_skill_obj.__dict__, 'index': len(data['skill']) - 1}), 201
@@ -237,7 +289,12 @@ def skill_at_id(skill_id=None):
     '''
     if request.method == 'GET':
         if 0 <= skill_id < len(data['skill']):
-            return jsonify(data['skill'][skill_id].__dict__), 200
+            skill = data['skill'][skill_id]
+            return jsonify({
+                'name': skill.name,
+                'proficiency': skill.proficiency,
+                'logo': get_logo(skill.logo)  # Use helper to get logo or default
+            }), 200
         else:
             return jsonify({'error': 'Skill not found'}), 404
     
@@ -247,7 +304,7 @@ def skill_at_id(skill_id=None):
 
             name = updated_data.get('name')
             proficiency = updated_data.get('proficiency')
-            logo = updated_data.get('logo')
+            logo = get_logo(updated_data.get('logo'))  # Use helper to handle missing logo
 
             if not name or not proficiency or not logo:
                 return jsonify({'error': 'Invalid input, all fields (name, proficiency, logo) are required'}), 400
