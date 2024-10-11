@@ -2,3 +2,4 @@ flask
 pytest
 pylint
 pyspellchecker
+google-generativeai
