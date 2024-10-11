@@ -4,6 +4,11 @@ Flask Application
 from flask import Flask, jsonify, request
 from models import Experience, Education, Skill
 from spellchecker import SpellChecker
+import google.generativeai as genai
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -32,6 +37,36 @@ data = {
 }
 
 spell = SpellChecker()
+
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+def get_gemini_suggestions(prompt):
+    """
+    Sends a prompt to GeminiAPI and returns a list of suggestions.
+    """
+    try:
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-flash",
+            generation_config={
+                "temperature": 0.7,
+                "top_p": 0.9,
+                "top_k": 50,
+                "max_output_tokens": 150,
+                "response_mime_type": "text/plain"
+            }
+        )
+        
+        chat_session = model.start_chat(history=[])
+        response = chat_session.send_message(prompt)
+        
+        # Process the response to extract suggestions
+        suggestions_text = response.text
+        suggestions = [s.strip("- ").strip() for s in suggestions_text.split('\n') if s.strip()]
+        
+        return suggestions
+    except Exception as e:
+        app.logger.error(f"GeminiAPI Error: {e}")
+        return []
 
 @app.route('/test')
 def hello_world():
@@ -84,6 +119,27 @@ def experience_at_id(experience_id):
             return jsonify(data['experience'][experience_id].__dict__), 200
         else:
             return jsonify({'error': 'Experience not found'}), 404
+        
+@app.route('/resume/experience/<int:experience_id>/suggestions', methods=['GET'])
+def experience_suggestions(experience_id):
+    """
+    Provides suggestions to improve the description field of a specific Experience entry.
+    """
+    if 0 <= experience_id < len(data['experience']):
+        current_description = data['experience'][experience_id].description
+        prompt = (
+            f"The following is a job description:\n\"{current_description}\"\n\n"
+            "Provide three suggestions to enhance this job description for better clarity and impact."
+        )
+        
+        suggestions = get_gemini_suggestions(prompt)
+        
+        if suggestions:
+            return jsonify({"suggestions": suggestions}), 200
+        else:
+            return jsonify({"error": "Failed to generate suggestions"}), 500
+    else:
+        return jsonify({'error': 'Experience not found'}), 404
 
 @app.route('/resume/education', methods=['GET', 'POST'])
 def education():
