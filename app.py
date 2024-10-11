@@ -3,6 +3,7 @@ Flask Application
 '''
 from flask import Flask, jsonify, request
 from models import Experience, Education, Skill
+from spellchecker import SpellChecker
 
 app = Flask(__name__)
 
@@ -30,6 +31,7 @@ data = {
     ]
 }
 
+spell = SpellChecker()
 
 @app.route('/test')
 def hello_world():
@@ -38,7 +40,6 @@ def hello_world():
     '''
     return jsonify({"message": "Hello, World!"})
 
-
 @app.route('/resume/experience', methods=['GET', 'POST'])
 def experience():
     '''
@@ -46,7 +47,7 @@ def experience():
     '''
     if request.method == 'GET':
         experiences = [exp.__dict__ for exp in data['experience']]
-        return jsonify(experiences)
+        return jsonify(experiences), 200
 
     if request.method == 'POST':
         experience_data = request.json
@@ -55,33 +56,34 @@ def experience():
         index = len(data['experience']) - 1
         return jsonify({'id': str(index)}), 201
 
-    return jsonify({})
+    return jsonify({}), 400
 
 @app.route('/resume/experience/<int:experience_id>', methods=['PUT'])
 def experience_at_id(experience_id):
     '''
-    Handles PUT requests to update an Experience at a specific ID
+    Handles PUT request to update an Experience at a specific ID
     '''
-    if 0 <= experience_id < len(data['experience']):
-        updated_data = request.get_json()
+    if request.method == 'PUT':
+        if 0 <= experience_id < len(data['experience']):
+            updated_data = request.get_json()
 
-        # Validate that all required fields are present
-        required_fields = ['title', 'company', 'start_date', 'end_date', 'description', 'logo']
-        if not all(field in updated_data for field in required_fields):
-            return jsonify({'error': f'All fields {required_fields} are required'}), 400
+            # Validate that all required fields are present
+            required_fields = ['title', 'company', 'start_date', 'end_date', 'description', 'logo']
+            if not all(field in updated_data for field in required_fields):
+                return jsonify({'error': f'All fields {required_fields} are required'}), 400
 
-        data['experience'][experience_id] = Experience(
-            title=updated_data['title'],
-            company=updated_data['company'],
-            start_date=updated_data['start_date'],
-            end_date=updated_data['end_date'],
-            description=updated_data['description'],
-            logo=updated_data['logo']
-        )
+            data['experience'][experience_id] = Experience(
+                title=updated_data['title'],
+                company=updated_data['company'],
+                start_date=updated_data['start_date'],
+                end_date=updated_data['end_date'],
+                description=updated_data['description'],
+                logo=updated_data['logo']
+            )
 
-        return jsonify(data['experience'][experience_id].__dict__), 200
-    else:
-        return jsonify({'error': 'Experience not found'}), 404
+            return jsonify(data['experience'][experience_id].__dict__), 200
+        else:
+            return jsonify({'error': 'Experience not found'}), 404
 
 @app.route('/resume/education', methods=['GET', 'POST'])
 def education():
@@ -89,7 +91,8 @@ def education():
     Handles education requests
     '''
     if request.method == 'GET':
-        return jsonify(data['education']), 200
+        educations = [edu.__dict__ for edu in data['education']]
+        return jsonify(educations), 200
 
     if request.method == 'POST':
         new_education = request.json
@@ -104,12 +107,12 @@ def education():
         ):
             return jsonify({'error': 'All fields are required'}), 400
 
-        data['education'].append(new_education)
+        new_edu = Education(**new_education)
+        data['education'].append(new_edu)
 
-        return jsonify({'message': 'Education added', 'data': new_education, 'index': len(data['education']) - 1}), 201
+        return jsonify({'message': 'Education added', 'data': new_edu.__dict__, 'index': len(data['education']) - 1}), 201
 
-    return jsonify({})
-
+    return jsonify({}), 400
 
 @app.route('/resume/education/<int:education_id>', methods=['GET', 'PUT', 'DELETE'])
 def education_at_id(education_id=None):
@@ -118,7 +121,7 @@ def education_at_id(education_id=None):
     '''
     if request.method == 'GET':
         if 0 <= education_id < len(data['education']):
-            return jsonify(data['education'][education_id]), 200
+            return jsonify(data['education'][education_id].__dict__), 200
         else:
             return jsonify({'error': 'Education not found'}), 404
 
@@ -138,18 +141,16 @@ def education_at_id(education_id=None):
 
             data['education'][education_id] = Education(course, school, start_date, end_date, grade, logo)
 
-            return jsonify({'message': 'Education updated', 'data': data['education'][education_id]}), 200
+            return jsonify({'message': 'Education updated', 'data': data['education'][education_id].__dict__}), 200
         else:
             return jsonify({'error': 'Education not found'}), 404    
 
     if request.method == 'DELETE':
         if 0 <= education_id < len(data['education']):
             deleted_education = data['education'].pop(education_id)
-
-            return jsonify({"message": "Education deleted", "data": deleted_education}), 200
+            return jsonify({"message": "Education deleted", "data": deleted_education.__dict__}), 200
         else:
             return jsonify({"error": "Education not found"}), 404
-
 
 @app.route('/resume/skill', methods=['GET', 'POST'])
 def skill():
@@ -157,7 +158,8 @@ def skill():
     Handles Skill requests
     '''
     if request.method == 'GET':
-        return jsonify(data['skill']), 200
+        skills = [skill.__dict__ for skill in data['skill']]
+        return jsonify(skills), 200
 
     if request.method == 'POST':
         new_skill = request.json
@@ -165,12 +167,12 @@ def skill():
         if "name" not in new_skill or "proficiency" not in new_skill or "logo" not in new_skill:
             return jsonify({"error": "Invalid input, all fields (name, proficiency, logo) are required"}), 400
         
-        data['skill'].append(new_skill)
+        new_skill_obj = Skill(**new_skill)
+        data['skill'].append(new_skill_obj)
         
-        return jsonify({'message': 'Skill added', 'data': new_skill, 'index': len(data['skill']) - 1}), 201
+        return jsonify({'message': 'Skill added', 'data': new_skill_obj.__dict__, 'index': len(data['skill']) - 1}), 201
 
-    return jsonify({})
-
+    return jsonify({}), 400
 
 @app.route('/resume/skill/<int:skill_id>', methods=['GET', 'PUT', 'DELETE'])
 def skill_at_id(skill_id=None):
@@ -179,7 +181,7 @@ def skill_at_id(skill_id=None):
     '''
     if request.method == 'GET':
         if 0 <= skill_id < len(data['skill']):
-            return jsonify(data['skill'][skill_id]), 200
+            return jsonify(data['skill'][skill_id].__dict__), 200
         else:
             return jsonify({'error': 'Skill not found'}), 404
     
@@ -196,14 +198,59 @@ def skill_at_id(skill_id=None):
 
             data['skill'][skill_id] = Skill(name, proficiency, logo)
 
-            return jsonify({'message': 'Skill updated', 'data': data['skill'][skill_id]}), 200
+            return jsonify({'message': 'Skill updated', 'data': data['skill'][skill_id].__dict__}), 200
         else:
             return jsonify({'error': 'Skill not found'}), 404    
 
     if request.method == 'DELETE':
         if 0 <= skill_id < len(data['skill']):
             deleted_skill = data['skill'].pop(skill_id)
-            
-            return jsonify({"message": "Skill deleted", "data": deleted_skill}), 200
+            return jsonify({"message": "Skill deleted", "data": deleted_skill.__dict__}), 200
         else:
             return jsonify({"error": "Skill not found"}), 404
+
+@app.route('/resume/', methods=['GET'])
+def spellcheck():
+    '''
+    Checks for spelling errors in Experience, Education, and Skill sections.
+    Returns a list of corrections in the specified format.
+    '''
+    corrections = []
+
+    # Function to check and collect corrections while preserving case
+    def check_text(text):
+        words = text.split()
+        misspelled = spell.unknown(words)
+        for word in misspelled:
+            correction = spell.correction(word)
+            if correction:
+                # Preserve the case of the original word
+                if word.istitle():
+                    correction = correction.capitalize()
+                elif word.isupper():
+                    correction = correction.upper()
+                else:
+                    # If the word is lowercase or mixed case, keep the correction as is
+                    correction = correction
+                corrections.append({
+                    "before": word,
+                    "after": correction
+                })
+
+    # Check Experience titles, descriptions, and companies
+    for exp in data['experience']:
+        check_text(exp.title)
+        check_text(exp.description)
+        check_text(exp.company)
+
+    # Check Education courses and schools
+    for edu in data['education']:
+        check_text(edu.course)
+        check_text(edu.school)
+
+    # Check Skill names
+    for skill in data['skill']:
+        check_text(skill.name)
+
+    return jsonify(corrections), 200
+
